@@ -1,0 +1,6 @@
+venv/
+data/
+bookstack_exports/
+__pycache__/
+*.pyc
+.env
