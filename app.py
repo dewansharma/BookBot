@@ -145,52 +145,44 @@ for message in st.session_state.messages:
 
 # chat input box at bottom of page
 if prompt := st.chat_input("Ask me anything about IT issues..."):
-    # 1. save last query
     st.session_state.last_query = prompt
-    
-    # 2. add user message to history
     st.session_state.messages.append({"role": "user", "content": prompt})
     
-    # 3. display user message
     with st.chat_message("user"):
         st.markdown(prompt)
-    
-    # 4. call ask() with a loading spinner
+
+    # get sources first
+    results = retrieve(prompt)
+    sources = list(set([
+        meta["source"] 
+        for meta in results["metadatas"][0]
+    ]))
+    top_distance = results["distances"][0][0]
+
     with st.spinner("Searching BookStack..."):
-        results = retrieve(prompt)
+        pass
 
     with st.chat_message("assistant"):
-        with st.spinner("Thinking..."):
-            # get the generator from ask()
-            stream = ask(prompt)
-            # grab first chunk to confirm LLM has started
-            first_chunk = next(stream)
-        
-        # now stream the rest word by word including first chunk
-        def full_stream():
-            yield first_chunk
-            for piece in stream:
-                yield piece
-        
-        answer = st.write_stream(full_stream())
+        answer = st.write_stream(ask(prompt))
+
+    # show sources if answer came from BookStack
+    if top_distance <= 370:
+        st.markdown("---")
+        st.markdown("📚 **Check Bookstack for images if you want:**")
+        for source in sources:
+            search_url = f"https://cad-bookstack.rit.edu/search?term={source.replace(' ', '+')}"
+            st.markdown(f"- [{source}]({search_url})")
 
     st.session_state.messages.append({
         "role": "assistant",
         "content": answer
     })
 
-    # remove both existing if statements and replace with this one
     if any(phrase in answer.lower() for phrase in [
-        "not from bookstack",
-        "i don't know",
-        "not provided",
-        "general steps",
-        "please verify",
-        "not in the documentation",
-        "i don't see any information",  
-        "no information",               
-        "not covered",                  
-        "cannot find"
+        "not from bookstack", "i don't know", "not provided",
+        "general steps", "please verify", "not in the documentation",
+        "i don't see any information", "no information",
+        "not covered", "cannot find"
     ]):
         st.session_state.show_web_search = True
 

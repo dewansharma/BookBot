@@ -10,13 +10,13 @@ import os
 ollama_host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 ollama.Client(host=ollama_host)
 
-def ask(query):
-    # 1. call retrieve(query) to get relevant chunks
-    results = retrieve(query)
-
+def ask(query, results=None):
+    if results is None:
+        results = retrieve(query)
+    
     top_distance = results["distances"][0][0]
     
-    if top_distance > 370:  # tune this number based on testing
+    if top_distance > 370:
         yield "I don't know based on the available documentation."
         return
     
