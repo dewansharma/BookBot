@@ -2,6 +2,7 @@ import os
 import chromadb
 import ollama
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from bookstack_api import get_all_content
 
 
 directory = 'bookstack_exports'
@@ -95,10 +96,10 @@ def embed_and_store(chunks):
 
 if __name__ == "__main__":
     # call all 3 functions in order
-    docs = load_documents('bookstack_exports')
+    # docs = load_documents('bookstack_exports')
 
+    docs = get_all_content()  # ← replaces load_documents()
     chunks = chunk_documents(docs)
-
     embed_and_store(chunks)
 
 

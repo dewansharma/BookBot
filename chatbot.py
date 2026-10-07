@@ -3,7 +3,12 @@ from retriever import retrieve
 # from duckduckgo_search import DDGS
 from googlesearch import search
 import time
+import os
 
+
+
+ollama_host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+ollama.Client(host=ollama_host)
 
 def ask(query):
     # 1. call retrieve(query) to get relevant chunks
@@ -24,6 +29,7 @@ def ask(query):
     prompt = f"""
         You are a helpful IT assistant for the College of Arts & Design at RIT.
 
+
         First, check if the answer is in the BookStack documentation provided below.
 
         If the answer IS in the BookStack documentation:
@@ -31,6 +37,7 @@ def ask(query):
         - Start with "Based on the BookStack documentation,"
         - Provide the complete answer with all steps
         - Do not add any outside information
+        - Provide with the links if any in the documentation
 
         If the answer is NOT in the BookStack documentation:
         - Provide a helpful general answer based on your knowledge
@@ -52,7 +59,9 @@ def ask(query):
 
     # 4. call ollama.chat() with llama3.1 model and the prompt
     response = ollama.chat(
-        model="mistral:7b",
+        # model="mistral:7b",
+        model="llama3.1:8b",
+
         messages=[
             {
                 "role": "system",
@@ -63,7 +72,8 @@ def ask(query):
                 "content": prompt
             }
         ],
-        stream=True
+        stream=True,
+        options={"num_predict": 1024}
     )
 
 

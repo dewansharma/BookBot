@@ -186,7 +186,11 @@ if prompt := st.chat_input("Ask me anything about IT issues..."):
         "not provided",
         "general steps",
         "please verify",
-        "not in the documentation"
+        "not in the documentation",
+        "i don't see any information",  
+        "no information",               
+        "not covered",                  
+        "cannot find"
     ]):
         st.session_state.show_web_search = True
 

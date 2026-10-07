@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  bookbot:
+    build: .
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data
+      - ./bookstack_exports:/app/bookstack_exports
+    environment:
+      - BOOKSTACK_TOKEN_ID=${BOOKSTACK_TOKEN_ID}
+      - BOOKSTACK_TOKEN_SECRET=${BOOKSTACK_TOKEN_SECRET}
+      - OLLAMA_HOST=http://host.docker.internal:11434
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

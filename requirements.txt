@@ -2,5 +2,8 @@ chromadb
 ollama
 langchain
 langchain-community
+langchain-text-splitters
 streamlit
-duckduckgo-search 
+googlesearch-python
+python-dotenv
+requests

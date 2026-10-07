@@ -19,7 +19,7 @@ def retrieve(query):
     # 5. call collection.query() with the vector, n_results=3
     result = collection.query(
         query_embeddings=[vector],  
-        n_results=3                 
+        n_results=5                 
     )
 
     # 6. print the results
