@@ -168,7 +168,7 @@ if prompt := st.chat_input("Ask me anything about IT issues..."):
     # show sources if answer came from BookStack
     if top_distance <= 370:
         st.markdown("---")
-        st.markdown("📚 **Check Bookstack for images if you want:**")
+        st.markdown("📚 **Reference Bookstack:**")
         for source in sources:
             search_url = f"https://cad-bookstack.rit.edu/search?term={source.replace(' ', '+')}"
             st.markdown(f"- [{source}]({search_url})")

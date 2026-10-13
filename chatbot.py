@@ -10,14 +10,25 @@ import os
 ollama_host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 ollama.Client(host=ollama_host)
 
+def is_casual(query):
+    casual_phrases = ["hi", "hello", "hey", "bye", "good morning", "good afternoon", "how's it going"]
+    return any(phrase in query.lower() for phrase in casual_phrases)
+
+
 def ask(query, results=None):
+
+    if is_casual(query):  # ← add this block at the very top of ask()
+        yield "Hello! I'm BookBot, your CADTech IT assistant. Ask me anything about IT issues and I'll search our BookStack documentation for you."
+        return
+
+
     if results is None:
         results = retrieve(query)
     
     top_distance = results["distances"][0][0]
     
     if top_distance > 370:
-        yield "I don't know based on the available documentation."
+        yield "I don't know based on Bookstacks!"
         return
     
     context = "\n\n".join(results["documents"][0])
@@ -29,15 +40,14 @@ def ask(query, results=None):
     prompt = f"""
         You are a helpful IT assistant for the College of Arts & Design at RIT.
 
-
         First, check if the answer is in the BookStack documentation provided below.
 
         If the answer IS in the BookStack documentation:
         - Answer using ONLY the documentation
         - Start with "Based on the BookStack documentation,"
-        - Provide the complete answer with all steps
+        - Provide the COMPLETE answer with ALL steps — do not stop early or cut short
         - Do not add any outside information
-        - Provide with the links if any in the documentation
+        - Include any links present in the documentation
 
         If the answer is NOT in the BookStack documentation:
         - Provide a helpful general answer based on your knowledge
@@ -73,7 +83,10 @@ def ask(query, results=None):
             }
         ],
         stream=True,
-        options={"num_predict": 1024}
+        options={
+            "num_predict": 1024,
+            "temperature": 0.1
+        }
     )
 
 
