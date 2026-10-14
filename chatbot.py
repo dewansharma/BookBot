@@ -70,7 +70,8 @@ def ask(query, results=None):
     # 4. call ollama.chat() with llama3.1 model and the prompt
     response = ollama.chat(
         # model="mistral:7b",
-        model="llama3.1:8b",
+        # model="llama3.1:8b",
+        model="qwen2.5:14b"
 
         messages=[
             {
