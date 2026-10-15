@@ -15,12 +15,11 @@ def is_casual(query):
     return any(phrase in query.lower() for phrase in casual_phrases)
 
 
-def ask(query, results=None):
-
-    if is_casual(query):  # ← add this block at the very top of ask()
+def ask(query, results=None, chat_history=None):
+    
+    if is_casual(query):
         yield "Hello! I'm BookBot, your CADTech IT assistant. Ask me anything about IT issues and I'll search our BookStack documentation for you."
         return
-
 
     if results is None:
         results = retrieve(query)
@@ -28,67 +27,57 @@ def ask(query, results=None):
     top_distance = results["distances"][0][0]
     
     if top_distance > 370:
-        yield "I don't know based on Bookstacks!"
+        yield "I don't know based on the available documentation."
         return
     
     context = "\n\n".join(results["documents"][0])
-    
 
-    # 2. join the chunks into a context string
-    context = "\n\n".join(results["documents"][0]) 
-    # 3. build the prompt with context + query
-    prompt = f"""
-        You are a helpful IT assistant for the College of Arts & Design at RIT.
-
-        First, check if the answer is in the BookStack documentation provided below.
-
-        If the answer IS in the BookStack documentation:
-        - Answer using ONLY the documentation
-        - Start with "Based on the BookStack documentation,"
-        - Provide the COMPLETE answer with ALL steps — do not stop early or cut short
-        - Do not add any outside information
-        - Include any links present in the documentation
-
-        If the answer is NOT in the BookStack documentation:
-        - Provide a helpful general answer based on your knowledge
-        - Start with "This is not from BookStack documentation — please verify this answer."
-        - Still try to be as helpful as possible for the IT tech
-
-        Do not include section references like "(Refer to X section)" in your answer.
+    system_prompt = """You are a helpful IT assistant for the College of Arts & Design at RIT.
+        Use ONLY the BookStack documentation provided in the user message to answer.
+        Provide the COMPLETE answer with ALL steps — do not stop early or cut short under any circumstances.
+        If the answer is in the documentation, start with "Based on the BookStack documentation,"
+        If the answer is NOT in the documentation, start with "This is not from BookStack documentation — please verify this answer."
+        Do not include section references like "(Refer to X section)".
         Do not add conversational phrases like "let me know" or "please feel free".
+        Include any links present in the documentation."""
 
-        BookStack documentation:
-        {context}
+    user_prompt = f"""BookStack documentation:
+    {context}
 
-        Question:
-        {query}
+    Question:
+    {query}
 
-        Answer:
-    """
+    Answer:"""
 
+    # build messages with history
+    messages = [{"role": "system", "content": system_prompt}]
 
-    # 4. call ollama.chat() with llama3.1 model and the prompt
+    if chat_history:
+        for msg in chat_history[-6:]:
+            messages.append({
+                "role": msg["role"],
+                "content": msg["content"]
+            })
+
+    messages.append({"role": "user", "content": user_prompt})
+
     response = ollama.chat(
-        # model="mistral:7b",
-        # model="llama3.1:8b",
-        model="qwen2.5:14b"
-
-        messages=[
-            {
-                "role": "system",
-                "content": "You are an IT assistant. You ONLY answer using the provided context. If the context does not contain the answer, say exactly: 'I don't know based on the available documentation.' Never add links, outside resources, or information not in the context."
-            },
-            {
-                "role": "user", 
-                "content": prompt
-            }
-        ],
+        model="qwen2.5:14b",
+        messages=messages,
         stream=True,
         options={
             "num_predict": 1024,
             "temperature": 0.1
         }
     )
+
+    full_answer = ""
+    for chunk in response:
+        piece = chunk["message"]["content"]
+        full_answer += piece
+        yield piece
+
+    return full_answer
 
 
     full_answer = ""

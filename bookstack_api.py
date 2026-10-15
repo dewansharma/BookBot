@@ -24,6 +24,9 @@ def get_all_page_ids():
     while offset < total:
         result = requests.get(f'{BASE_URL}/api/pages?count=500&offset={offset}', headers=get_headers())
         data = result.json()
+        print("API response:", data)  # ← add this temporarily
+
+
         total = data["total"]
 
         for item in data["data"]        :
@@ -35,14 +38,13 @@ def get_all_page_ids():
 
 
 def get_page_content(page_id, page_name):
-    result = requests.get(f'{BASE_URL}/api/pages/{page_id}/export/plaintext', headers=get_headers())
-    data = result.text
-    page_content = {}
-    page_content["filename"] = page_name
-    page_content["text"] = data
-
-    return page_content
-
+    result = requests.get(
+        f'{BASE_URL}/api/pages/{page_id}/export/plaintext',
+        headers=get_headers()
+    )
+    # prepend page title to content
+    text = f"{page_name}\n\n{result.text}"
+    return {"filename": page_name, "text": text}
 
 def get_all_content():
 
